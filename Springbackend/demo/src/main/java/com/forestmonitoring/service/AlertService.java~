@@ -1,4 +1,0 @@
-package com.forestmonitoring.service;
-
-public class AlertService {
-}

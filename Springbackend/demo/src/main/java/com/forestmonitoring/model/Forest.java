@@ -5,25 +5,28 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
-public class Alert {
+public class Forest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
     private String forestToken;
-    private String alertType;
-    private LocalDateTime timestamp;
 
-    public Alert(String forestToken, String alertType) {
+    private String name;
+
+    @OneToMany(mappedBy = "forestToken", cascade = CascadeType.ALL)
+    private List<Alert> alerts;
+
+    public Forest(String forestToken, String name) {
         this.forestToken = forestToken;
-        this.alertType = alertType;
-        this.timestamp = LocalDateTime.now();
+        this.name = name;
     }
 }

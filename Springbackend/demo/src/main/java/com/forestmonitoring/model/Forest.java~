@@ -3,20 +3,19 @@ package com.forestmonitoring.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
 @Setter
-public class Alert {
+public class Forest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String alertType;
-    private LocalDateTime timestamp;
+    private String name;
+    private String forestToken;
 
-    @ManyToOne
-    @JoinColumn(name = "forest_id")
-    private Forest forest;
+    @OneToMany(mappedBy = "forest", cascade = CascadeType.ALL)
+    private List<Alert> alerts;
 }

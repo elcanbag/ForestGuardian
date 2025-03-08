@@ -1,4 +1,7 @@
 package com.forestmonitoring.model;
 
-public class Role {
+public enum Role {
+    ADMIN,
+    FOREST_GUARD,
+    emergencies
 }
