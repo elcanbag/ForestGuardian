@@ -28,12 +28,10 @@ public class AuthController {
         }
     }
 
-
     @GetMapping("/users")
     public ResponseEntity<List<User>> getUsers(Authentication authentication) {
         return ResponseEntity.ok(userService.getUsers(authentication.getName()));
     }
-
 
     @GetMapping("/users/{id}")
     public ResponseEntity<?> getUser(@PathVariable Long id, Authentication authentication) {
@@ -43,6 +41,27 @@ public class AuthController {
             return ResponseEntity.ok(user.get());
         } else {
             return ResponseEntity.badRequest().body("User not found or not authorized");
+        }
+    }
+
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id, Authentication authentication) {
+        try {
+            userService.deleteUser(id, authentication.getName());
+            return ResponseEntity.ok("User deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/users/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User user, Authentication authentication) {
+        try {
+            User updatedUser = userService.updateUser(id, user, authentication.getName());
+            return ResponseEntity.ok(updatedUser);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }
