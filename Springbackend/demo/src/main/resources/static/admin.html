@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-3xl font-bold text-center mb-6">Admin Panel</h1>
+        <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded absolute top-4 right-4">Logout</button>
+        
+        <div class="mt-6">
+            <h2 class="text-xl font-bold">Users</h2>
+            <button onclick="addUser()" class="bg-green-500 text-white px-4 py-2 rounded mt-2">Add User</button>
+            <ul id="userList" class="mt-4 bg-gray-100 p-4 rounded shadow"></ul>
+        </div>
+        
+        <div class="mt-6">
+            <h2 class="text-xl font-bold">Forests</h2>
+            <button onclick="addForest()" class="bg-blue-500 text-white px-4 py-2 rounded mt-2">Add Forest</button>
+            <ul id="forestList" class="mt-4 bg-gray-100 p-4 rounded shadow"></ul>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = "http://localhost";
+
+        function fetchUsers() {
+            fetch(`${API_BASE}/auth/users`, {
+                headers: { "Authorization": `Basic ${btoa(localStorage.getItem("username") + ":" + localStorage.getItem("password"))}` }
+            })
+            .then(response => response.json())
+            .then(users => {
+                const userList = document.getElementById("userList");
+                userList.innerHTML = "";
+                users.forEach(user => {
+                    const li = document.createElement("li");
+                    li.textContent = `${user.username} - ${user.role}`;
+                    li.classList.add("p-2", "border-b");
+                    userList.appendChild(li);
+                });
+            });
+        }
+
+        function fetchForests() {
+            fetch(`${API_BASE}/forests`, {
+                headers: { "Authorization": `Basic ${btoa(localStorage.getItem("username") + ":" + localStorage.getItem("password"))}` }
+            })
+            .then(response => response.json())
+            .then(forests => {
+                const forestList = document.getElementById("forestList");
+                forestList.innerHTML = "";
+                forests.forEach(forest => {
+                    const li = document.createElement("li");
+                    li.textContent = `${forest.name} - ${forest.location}`;
+                    li.classList.add("p-2", "border-b");
+                    forestList.appendChild(li);
+                });
+            });
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = "index.html";
+        }
+
+        function addUser() {
+            const username = prompt("Enter username:");
+            const password = prompt("Enter password:");
+            const role = prompt("Enter role (ADMIN, FOREST_GUARD, EMERGENCIES):");
+            
+            fetch(`${API_BASE}/auth/add-user`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Basic ${btoa(localStorage.getItem("username") + ":" + localStorage.getItem("password"))}`
+                },
+                body: JSON.stringify({ username, password, role })
+            })
+            .then(() => fetchUsers());
+        }
+
+        function addForest() {
+            const name = prompt("Enter forest name:");
+            const location = prompt("Enter forest location:");
+            
+            fetch(`${API_BASE}/forests`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Basic ${btoa(localStorage.getItem("username") + ":" + localStorage.getItem("password"))}`
+                },
+                body: JSON.stringify({ name, location })
+            })
+            .then(() => fetchForests());
+        }
+
+        if (window.location.pathname.includes("admin.html")) {
+            fetchUsers();
+            fetchForests();
+        }
+    </script>
+</body>
+</html>

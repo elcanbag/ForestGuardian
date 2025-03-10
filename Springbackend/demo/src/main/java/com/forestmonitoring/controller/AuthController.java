@@ -1,21 +1,54 @@
 package com.forestmonitoring.controller;
 
 import com.forestmonitoring.model.User;
+import com.forestmonitoring.repository.UserRepository;
 import com.forestmonitoring.service.UserService;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
     private final UserService userService;
+    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;  // 🛠 Eklendi
 
-    public AuthController(UserService userService) {
+    public AuthController(UserService userService, AuthenticationManager authenticationManager, UserRepository userRepository) {
         this.userService = userService;
+        this.authenticationManager = authenticationManager;
+        this.userRepository = userRepository;  // ✅ Artık null olmayacak
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody User loginRequest) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
+            );
+
+            Optional<User> userOptional = userRepository.findByUsername(loginRequest.getUsername());
+
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                Map<String, Object> response = new HashMap<>();
+                response.put("message", "Login successful");
+                response.put("username", user.getUsername());
+                response.put("role", user.getRole().name());
+
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.badRequest().body("User not found");
+            }
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(401).body(Collections.singletonMap("message", "Invalid credentials"));
+        }
     }
 
     @PostMapping("/add-user")
@@ -43,7 +76,6 @@ public class AuthController {
             return ResponseEntity.badRequest().body("User not found or not authorized");
         }
     }
-
 
     @DeleteMapping("/users/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id, Authentication authentication) {
