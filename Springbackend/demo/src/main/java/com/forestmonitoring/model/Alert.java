@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -20,6 +19,11 @@ public class Alert {
     private String forestToken;
     private String alertType;
     private LocalDateTime timestamp;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "forestToken", referencedColumnName = "forestToken", insertable = false, updatable = false)
+    private Forest forest;
 
     public Alert(String forestToken, String alertType) {
         this.forestToken = forestToken;

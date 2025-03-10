@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import java.util.List;
 
 @Entity
@@ -22,7 +21,8 @@ public class Forest {
 
     private String name;
 
-    @OneToMany(mappedBy = "forestToken", cascade = CascadeType.ALL)
+
+    @OneToMany(mappedBy = "forest", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Alert> alerts;
 
     public Forest(String forestToken, String name) {
