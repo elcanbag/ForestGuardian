@@ -12,7 +12,7 @@
         <h1 class="text-3xl font-bold text-center mb-6">Admin Panel</h1>
         <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded absolute top-4 right-4">Logout</button>
 
-        <!-- Navigation -->
+        <!-- Navigation Tabs -->
         <div class="flex justify-center mb-4">
             <button onclick="showSection('forestSection')" id="forestTab"
                 class="tab-button bg-green-500 text-white px-4 py-2 rounded-l">Forest Management</button>
@@ -26,7 +26,7 @@
             <input type="text" id="searchForest" placeholder="Search forest..." class="w-full px-4 py-2 border rounded mt-2"
                 onkeyup="searchForest()">
             <button onclick="addForest()" class="bg-blue-500 text-white px-4 py-2 rounded mt-2">Add Forest</button>
-            <ul id="forestList" class="mt-4 bg-gray-100 p-4 rounded shadow"></ul>
+            <div id="forestList" class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
         <!-- User Management -->
@@ -37,149 +37,98 @@
             <button onclick="addUser()" class="bg-green-500 text-white px-4 py-2 rounded mt-2">Add User</button>
             <ul id="userList" class="mt-4 bg-gray-100 p-4 rounded shadow"></ul>
         </div>
-
     </div>
 
     <script>
         const API_BASE = "http://localhost";
+
+        function authHeader() {
+            return { "Authorization": `Basic ${btoa(localStorage.getItem("username") + ":" + localStorage.getItem("password"))}` };
+        }
 
         function showSection(section) {
             document.getElementById('forestSection').classList.add('hidden');
             document.getElementById('userSection').classList.add('hidden');
             document.getElementById(section).classList.remove('hidden');
 
-            document.getElementById('forestTab').classList.remove('bg-green-500', 'text-white');
-            document.getElementById('forestTab').classList.add('bg-gray-200', 'text-gray-800');
-            document.getElementById('userTab').classList.remove('bg-green-500', 'text-white');
-            document.getElementById('userTab').classList.add('bg-gray-200', 'text-gray-800');
+            document.getElementById('forestTab').classList.toggle('bg-green-500', section === 'forestSection');
+            document.getElementById('forestTab').classList.toggle('bg-gray-200', section !== 'forestSection');
+            document.getElementById('userTab').classList.toggle('bg-green-500', section === 'userSection');
+            document.getElementById('userTab').classList.toggle('bg-gray-200', section !== 'userSection');
 
-            if (section === 'forestSection') {
-                document.getElementById('forestTab').classList.add('bg-green-500', 'text-white');
-                fetchForests();
-            } else {
-                document.getElementById('userTab').classList.add('bg-green-500', 'text-white');
-                fetchUsers();
-            }
-        }
-
-        function fetchUsers() {
-            fetch(`${API_BASE}/auth/users`, {
-                headers: { "Authorization": `Basic ${btoa(localStorage.getItem("username") + ":" + localStorage.getItem("password"))}` }
-            })
-            .then(response => response.json())
-            .then(users => {
-                const userList = document.getElementById("userList");
-                userList.innerHTML = "";
-                users.forEach(user => {
-                    userList.innerHTML += `<li class="p-2 border-b flex justify-between">
-                        ${user.username} - ${user.role}
-                        <button onclick="deleteUser(${user.id})" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
-                    </li>`;
-                });
-            });
+            if (section === 'forestSection') fetchForests();
+            else fetchUsers();
         }
 
         function fetchForests() {
-            fetch(`${API_BASE}/forests`, {
-                headers: { "Authorization": `Basic ${btoa(localStorage.getItem("username") + ":" + localStorage.getItem("password"))}` }
-            })
+            fetch(`${API_BASE}/forests`, { headers: authHeader() })
             .then(response => response.json())
             .then(forests => {
                 const forestList = document.getElementById("forestList");
                 forestList.innerHTML = "";
+
+                const alertForests = [];
+                const normalForests = [];
+
                 forests.forEach(forest => {
-                    forestList.innerHTML += `<li class="p-2 border-b flex justify-between">
-                        ${forest.name} - ${forest.latestAlert.alertType} (${forest.latestAlert.timestamp})
-                        <button onclick="deleteForest(${forest.id})" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
-                    </li>`;
+                    if (forest.latestAlert.alertType !== "Normal") {
+                        alertForests.push(forest);
+                    } else {
+                        normalForests.push(forest);
+                    }
                 });
+
+                const renderForests = (list, color) => {
+                    return list.map(forest => `
+                        <div class="border ${color} p-4 rounded-lg shadow-md">
+                            <h3 class="text-lg font-bold">${forest.name}</h3>
+                            <p class="text-sm">Alert: <span class="font-bold">${forest.latestAlert.alertType}</span></p>
+                            <p class="text-xs text-gray-600">Timestamp: ${new Date(forest.latestAlert.timestamp).toLocaleString()}</p>
+                            <div class="flex justify-end mt-3">
+                                <button onclick="editForest(${forest.id})" class="bg-blue-500 text-white px-2 py-1 rounded mr-2">Edit</button>
+                                <button onclick="deleteForest(${forest.id})" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+                            </div>
+                        </div>`).join('');
+                };
+
+                forestList.innerHTML += renderForests(alertForests, "bg-red-100 border-red-500 text-red-700");
+                forestList.innerHTML += renderForests(normalForests, "bg-green-100 border-green-500 text-green-700");
             });
         }
 
-        function addUser() {
-            const username = prompt("Enter username:");
-            const password = prompt("Enter password:");
-            const role = prompt("Enter role (ADMIN, FOREST_GUARD, EMERGENCIES):");
+        function editForest(id) {
+            const name = prompt("Enter new forest name:");
+            const token = prompt("Enter new forest token:");
 
-            fetch(`${API_BASE}/auth/add-user`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Basic ${btoa(localStorage.getItem("username") + ":" + localStorage.getItem("password"))}` },
-                body: JSON.stringify({ username, password, role })
-            }).then(() => fetchUsers());
-        }
-
-        function addForest() {
-            const name = prompt("Enter forest name:");
-            const token = prompt("Enter forest token:");
-
-            fetch(`${API_BASE}/forests`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Basic ${btoa(localStorage.getItem("username") + ":" + localStorage.getItem("password"))}` },
+            fetch(`${API_BASE}/forests/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json", ...authHeader() },
                 body: JSON.stringify({ name, forestToken: token })
             }).then(() => fetchForests());
         }
 
-        function deleteUser(id) {
-            fetch(`${API_BASE}/auth/users/${id}`, {
-                method: "DELETE",
-                headers: { "Authorization": `Basic ${btoa(localStorage.getItem("username") + ":" + localStorage.getItem("password"))}` }
-            }).then(() => fetchUsers());
-        }
-
         function deleteForest(id) {
-            fetch(`${API_BASE}/forests/${id}`, {
-                method: "DELETE",
-                headers: { "Authorization": `Basic ${btoa(localStorage.getItem("username") + ":" + localStorage.getItem("password"))}` }
-            }).then(() => fetchForests());
+            fetch(`${API_BASE}/forests/${id}`, { method: "DELETE", headers: authHeader() })
+            .then(() => fetchForests());
         }
 
-        function logout() {
-            localStorage.clear();
-            window.location.href = "index.html";
+        function fetchUsers() {
+            fetch(`${API_BASE}/auth/users`, { headers: authHeader() })
+            .then(response => response.json())
+            .then(users => {
+                const userList = document.getElementById("userList");
+                userList.innerHTML = users.map(u => 
+                    `<li class="p-2 border-b flex justify-between">
+                        ${u.username} - ${u.role}
+                        <button onclick="deleteUser(${u.id})" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+                    </li>`).join('');
+            });
         }
 
-        function searchForest() {
-    const query = document.getElementById("searchForest").value;
-    
-    fetch(`${API_BASE}/forests/search?name=${query}`, {
-        headers: {
-            "Authorization": `Basic ${btoa(localStorage.getItem("username") + ":" + localStorage.getItem("password"))}`
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error("Unauthorized");
-        }
-        return response.json();
-    })
-    .then(forests => {
-        const forestList = document.getElementById("forestList");
-        forestList.innerHTML = forests.map(f => 
-            `<li class="p-2 border-b flex justify-between">
-                ${f.name} - ${f.latestAlert.alertType} (${f.latestAlert.timestamp})
-                <button onclick="deleteForest(${f.id})" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
-            </li>`
-        ).join('');
-    })
-    .catch(error => {
-        console.error("Search failed:", error);
-    });
-}
-
-function searchUser() {
-    const query = document.getElementById("searchUser").value;
-
-    fetch(`${API_BASE}/auth/users/search?username=${query}`, {
-        headers: {
-            "Authorization": `Basic ${btoa(localStorage.getItem("username") + ":" + localStorage.getItem("password"))}`
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error("Unauthorized");
-        }
-        return response.json();
-    })
+    function searchUser() {
+    const searchInput = document.getElementById('searchUser').value;
+    fetch(`${API_BASE}/auth/users/search?username=${searchInput}`, { headers: authHeader() })
+    .then(response => response.json())
     .then(users => {
         const userList = document.getElementById("userList");
         userList.innerHTML = users.map(u => 
@@ -188,21 +137,77 @@ function searchUser() {
                 <button onclick="deleteUser(${u.id})" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
             </li>`
         ).join('');
-    })
-    .catch(error => {
-        console.error("Search failed:", error);
     });
 }
 
+    function addUser() {
+    const username = prompt("Enter username:");
+    const password = prompt("Enter password:");
+    const role = prompt("Enter role (e.g., ADMIN, USER, FOREST_GUARD):");
+    fetch(`${API_BASE}/auth/add-user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeader() },
+        body: JSON.stringify({ username, password, role })
+    }).then(() => fetchUsers());
+}
 
-        function searchUser() {
-            const query = document.getElementById("searchUser").value;
-            fetch(`${API_BASE}/auth/users/search?username=${query}`)
-            .then(response => response.json())
-            .then(users => {
-                const userList = document.getElementById("userList");
-                userList.innerHTML = users.map(u => `<li>${u.username}</li>`).join('');
-            });
+function searchForest() {
+    const searchInput = document.getElementById('searchForest').value;
+    fetch(`${API_BASE}/forests/search?name=${searchInput}`, { headers: authHeader() })
+    .then(response => response.json())
+    .then(forests => {
+        const forestList = document.getElementById("forestList");
+        forestList.innerHTML = "";
+
+        const alertForests = [];
+        const normalForests = [];
+
+        forests.forEach(forest => {
+            if (forest.latestAlert.alertType !== "Normal") {
+                alertForests.push(forest);
+            } else {
+                normalForests.push(forest);
+            }
+        });
+
+        const renderForests = (list, color) => {
+            return list.map(forest => `
+                <div class="border ${color} p-4 rounded-lg shadow-md">
+                    <h3 class="text-lg font-bold">${forest.name}</h3>
+                    <p class="text-sm">Alert: <span class="font-bold">${forest.latestAlert.alertType}</span></p>
+                    <p class="text-xs text-gray-600">Timestamp: ${new Date(forest.latestAlert.timestamp).toLocaleString()}</p>
+                    <div class="flex justify-end mt-3">
+                        <button onclick="editForest(${forest.id})" class="bg-blue-500 text-white px-2 py-1 rounded mr-2">Edit</button>
+                        <button onclick="deleteForest(${forest.id})" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        forestList.innerHTML += renderForests(alertForests, "bg-red-100 border-red-500 text-red-700");
+        forestList.innerHTML += renderForests(normalForests, "bg-green-100 border-green-500 text-green-700");
+    });
+}
+
+    function addForest() {
+        const name = prompt("Enter forest name:");
+        const token = prompt("Enter forest token:");
+        fetch(`${API_BASE}/forests`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeader() },
+            body: JSON.stringify({ name, forestToken: token })
+        }).then(() => fetchForests());
+    }
+
+
+        function deleteUser(id) {
+            fetch(`${API_BASE}/auth/users/${id}`, { method: "DELETE", headers: authHeader() })
+            .then(() => fetchUsers());
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = "index.html";
         }
 
         showSection('forestSection');
