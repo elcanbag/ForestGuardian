@@ -70,6 +70,33 @@ public class ForestController {
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<Map<String, Object>>> searchForests(@RequestParam String name) {
+        List<Forest> forests = forestRepository.findByNameContainingIgnoreCase(name);
+
+        List<Map<String, Object>> responseList = forests.stream().map(forest -> {
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", forest.getId());
+            response.put("name", forest.getName());
+            response.put("forestToken", forest.getForestToken());
+
+            List<Alert> alerts = alertRepository.findByForestToken(forest.getForestToken());
+            if (!alerts.isEmpty()) {
+                Alert lastAlert = alerts.get(alerts.size() - 1);
+                Map<String, Object> alertData = new HashMap<>();
+                alertData.put("alertType", lastAlert.getAlertType());
+                alertData.put("timestamp", lastAlert.getTimestamp());
+                response.put("latestAlert", alertData);
+            } else {
+                response.put("latestAlert", null);
+            }
+
+            return response;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(responseList);
+    }
+
     @GetMapping
     public ResponseEntity<List<Map<String, Object>>> getAllForestsWithLatestAlerts() {
         List<Forest> forests = forestRepository.findAll();

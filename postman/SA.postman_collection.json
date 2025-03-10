@@ -91,6 +91,31 @@
 							"response": []
 						},
 						{
+							"name": "Search",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost/forests/search?name=",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"path": [
+										"forests",
+										"search"
+									],
+									"query": [
+										{
+											"key": "name",
+											"value": ""
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Update Forest",
 							"request": {
 								"method": "PUT",
@@ -232,6 +257,32 @@
 										"auth",
 										"users",
 										"3"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "New Request",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost/auth/users/search?username=admin",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"path": [
+										"auth",
+										"users",
+										"search"
+									],
+									"query": [
+										{
+											"key": "username",
+											"value": "admin"
+										}
 									]
 								}
 							},

@@ -87,6 +87,13 @@ public class AuthController {
         }
     }
 
+    @GetMapping("/users/search")
+    public ResponseEntity<List<User>> searchUsers(@RequestParam String username, Authentication authentication) {
+        List<User> users = userRepository.findByUsernameContainingIgnoreCase(username);
+
+        return ResponseEntity.ok(users);
+    }
+
     @PutMapping("/users/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User user, Authentication authentication) {
         try {
