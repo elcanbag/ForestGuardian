@@ -10,6 +10,7 @@ INSERT INTO FOREST (id, name, forest_token) VALUES (4, 'Congo Rainforest', 'CNG1
 INSERT INTO FOREST (id, name, forest_token) VALUES (5, 'Borneo Rainforest', 'BOR202');
 
 
+
 INSERT INTO ALERT (id, alert_type, timestamp, forest_token) VALUES (1, 'Normal', '2025-03-08T12:00:00', 'AMZ123');
 INSERT INTO ALERT (id, alert_type, timestamp, forest_token) VALUES (2, 'Normal', '2025-03-07T14:30:00', 'AMZ123');
 INSERT INTO ALERT (id, alert_type, timestamp, forest_token) VALUES (3, 'Illegal Logging', '2025-03-06T16:45:00', 'BLK456');

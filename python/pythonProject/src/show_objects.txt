@@ -1,0 +1,16 @@
+
+person
+cell phone
+car
+truck
+bus
+motorcycle
+bicycle
+backpack
+
+
+
+chainsaw
+axe
+smoke
+fire
