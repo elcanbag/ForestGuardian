@@ -1,6 +1,7 @@
 package com.forestmonitoring.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -16,6 +17,7 @@ public class Forest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false, updatable = false)
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 
@@ -25,8 +27,8 @@ public class Forest {
 
     private String name;
 
-
     @OneToMany(mappedBy = "forest", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Alert> alerts;
 
     public Forest(String forestToken, String name) {

@@ -24,8 +24,7 @@ public class ForestController {
 
     @PostMapping
     public ResponseEntity<Forest> createForest(@RequestBody Forest forest) {
-        // Yeni kayıt oluştururken id'nin null olması, otomatik artışın çalışmasını sağlar.
-        forest.setId(null);
+        // Dikkat: İstek içerisinde "id" alanı gönderilmemeli.
         Forest createdForest = forestRepository.save(forest);
         return ResponseEntity.ok(createdForest);
     }
@@ -34,7 +33,7 @@ public class ForestController {
     public ResponseEntity<Forest> updateForest(@PathVariable Long id, @RequestBody Forest forest) {
         return forestRepository.findById(id).map(existingForest -> {
             existingForest.setName(forest.getName());
-            // Dikkat: Mevcut Alert ilişkileri nedeniyle forestToken alanını değiştirmiyoruz.
+            existingForest.setForestToken(forest.getForestToken());
             Forest updatedForest = forestRepository.save(existingForest);
             return ResponseEntity.ok(updatedForest);
         }).orElseGet(() -> ResponseEntity.notFound().build());

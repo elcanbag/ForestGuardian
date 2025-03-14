@@ -1,5 +1,6 @@
 package com.forestmonitoring.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,17 +17,16 @@ public class Alert {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String forestToken;
     private String alertType;
     private LocalDateTime timestamp;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "forestToken", referencedColumnName = "forestToken", insertable = false, updatable = false)
+    @JoinColumn(name = "forestToken", referencedColumnName = "forestToken")
+    @JsonBackReference
     private Forest forest;
 
-    public Alert(String forestToken, String alertType) {
-        this.forestToken = forestToken;
+    public Alert(Forest forest, String alertType) {
+        this.forest = forest;
         this.alertType = alertType;
         this.timestamp = LocalDateTime.now();
     }
