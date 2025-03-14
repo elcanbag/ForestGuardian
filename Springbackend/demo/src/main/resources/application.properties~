@@ -1,6 +1,6 @@
 server.port=80
 
-spring.datasource.url=jdbc:postgresql://localhost:5432/forestguard
+spring.datasource.url=jdbc:postgresql://localhost:5432/frestguard
 spring.datasource.driverClassName=org.postgresql.Driver
 spring.datasource.username=postgres
 spring.datasource.password=admin
