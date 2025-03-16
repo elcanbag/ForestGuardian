@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-
+    /* (Stil kodları aynı kalabilir) */
     body {
       background: url("https://ybis.ru/wp-content/uploads/2023/10/prirodookhrannye-lesa-1.webp") no-repeat center center fixed;
       background-size: cover;
@@ -137,7 +137,7 @@
   </div>
 
   <script>
-    const API_BASE = "https://xjyj.site";
+    const API_BASE = "http://localhost";
 
     function authHeader() {
       return { "Authorization": `Basic ${btoa(localStorage.getItem("username") + ":" + localStorage.getItem("password"))}` };
